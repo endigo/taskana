@@ -1,5 +1,6 @@
 import React from "react";
 import { Toaster } from "react-hot-toast";
+import ReactQueryProvider from "./query-provider";
 
 export const AppProviders = ({
   children,
@@ -7,10 +8,10 @@ export const AppProviders = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <main>
+    <ReactQueryProvider>
       <Toaster position="top-right" />
       {children}
-    </main>
+    </ReactQueryProvider>
   );
 };
 
