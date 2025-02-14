@@ -1,5 +1,6 @@
 import React from "react";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "next-themes";
 import ReactQueryProvider from "./query-provider";
 
 export const AppProviders = ({
@@ -9,8 +10,10 @@ export const AppProviders = ({
 }>) => {
   return (
     <ReactQueryProvider>
-      <Toaster position="top-right" />
-      {children}
+      <ThemeProvider>
+        <Toaster position="top-right" />
+        {children}
+      </ThemeProvider>
     </ReactQueryProvider>
   );
 };

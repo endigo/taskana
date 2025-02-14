@@ -1,10 +1,10 @@
-import { Task, TaskPriority, TaskStatus } from "@/common/types/task";
+import { Task, TaskPriorityEnum, TaskStatusEnum } from "@/common/types/task";
 
 export type TaskParams = {
   limit?: number;
   offset?: number;
-  status?: TaskStatus;
-  priority?: TaskPriority;
+  status?: TaskStatusEnum;
+  priority?: TaskPriorityEnum;
   query?: string;
 };
 
