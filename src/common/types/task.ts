@@ -12,6 +12,14 @@ export enum TaskPriorityEnum {
   URGENT = "urgent",
 }
 
+export const TaskPriorityOrder = [
+  TaskPriorityEnum.URGENT,
+  TaskPriorityEnum.HIGH,
+  TaskPriorityEnum.MEDIUM,
+  TaskPriorityEnum.LOW,
+  TaskPriorityEnum.NONE,
+];
+
 export type BaseTask = {
   id: number;
   title: string;

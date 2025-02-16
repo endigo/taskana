@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { deleteTask } from "@/features/tasks/services/tasks";
 
 export const TaskDelete = ({ task }: { task: Task }) => {
+  const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const handleDelete = async () => {
     await toast.promise(deleteTask(task.id), {
@@ -27,10 +28,12 @@ export const TaskDelete = ({ task }: { task: Task }) => {
     queryClient.setQueryData(["tasks"], (prevTasks: Task[]) =>
       prevTasks.filter((t) => t.id !== task.id),
     );
+
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="destructive" size="sm">
           Delete

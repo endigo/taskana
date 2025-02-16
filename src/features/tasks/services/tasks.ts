@@ -1,12 +1,19 @@
 import { SK_DATA, SK_TASK_CONFIG } from "@/common/constants";
-import { Task, TaskPriorityEnum, TaskStatusEnum } from "@/common/types/task";
+import {
+  Task,
+  TaskPriorityEnum,
+  TaskPriorityOrder,
+  TaskStatusEnum,
+} from "@/common/types/task";
+import { SortDirection } from "@/components/data-table/types";
 
 export type TaskParams = {
-  limit?: number;
-  offset?: number;
+  limit?: string | number;
+  page?: string | number;
   status?: TaskStatusEnum;
   priority?: TaskPriorityEnum;
   query?: string;
+  sort?: string;
 };
 
 export type TaskInput = {
@@ -50,20 +57,67 @@ export const syncTasksFromGist = async () => {
 };
 
 // TODO: Implement pagination, filter, and sorting
-// TODO: Remove API, drizzle, pglite
 export const fetchTasks = async (params: TaskParams): Promise<Task[]> => {
-  console.info(params);
-
-  if (localStorage[SK_DATA]) {
-    const data = window.localStorage.getItem(SK_DATA);
-
-    if (data) {
-      return JSON.parse(data);
-    }
+  if (!localStorage[SK_DATA]) {
+    console.info("No tasks found");
+    syncTasksFromGist();
   }
 
-  console.info("No tasks found");
-  return syncTasksFromGist();
+  const data = window.localStorage.getItem(SK_DATA);
+
+  if (data) {
+    const parsedData = JSON.parse(data) as Task[];
+
+    if (params.sort) {
+      const splittedSort = params.sort.split("_");
+
+      const sortColumn = splittedSort[0] as keyof Task;
+      const direction = splittedSort[1] as SortDirection;
+
+      if (sortColumn === "priority") {
+        parsedData.sort(sortByPriority(direction));
+      } else {
+        parsedData.sort((a: Task, b: Task) => {
+          const valA = a[sortColumn];
+          const valB = b[sortColumn];
+
+          if (typeof valA === "string" && typeof valB === "string") {
+            if (direction === "asc") {
+              return valA.toLowerCase().localeCompare(valB.toLowerCase());
+            }
+            return valB.toLowerCase().localeCompare(valA.toLowerCase());
+          }
+
+          // TODO: handle other types of fields numbers, boolean, date
+          if (direction === "asc") {
+            return +a[sortColumn] - +b[sortColumn];
+          }
+          return +b[sortColumn] - +a[sortColumn];
+        });
+      }
+    }
+
+    return parsedData;
+  }
+  return [];
+};
+
+const sortByPriority = (direction: SortDirection) => {
+  return (a: Task, b: Task) => {
+    // Sort by following priority
+    // 1. Urgent
+    // 2. High
+    // 3. Medium
+    // 4. Low
+    // 5. None
+    const aIndex = TaskPriorityOrder.indexOf(a.priority);
+    const bIndex = TaskPriorityOrder.indexOf(b.priority);
+
+    if (direction === "asc") {
+      return aIndex - bIndex;
+    }
+    return bIndex - aIndex;
+  };
 };
 
 export const createTask = async (input: TaskInput) => {
