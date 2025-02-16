@@ -10,7 +10,7 @@ export const TaskPriorityClassMap: Record<TaskPriorityEnum, string> = {
   [TaskPriorityEnum.URGENT]: "bg-red-900",
 };
 
-const TaskPriorityTranslation: Record<TaskPriorityEnum, string> = {
+const TaskPriorityLabelMap: Record<TaskPriorityEnum, string> = {
   [TaskPriorityEnum.NONE]: "",
   [TaskPriorityEnum.LOW]: "Low 🤫",
   [TaskPriorityEnum.MEDIUM]: "Medium",
@@ -24,12 +24,12 @@ export const TaskPriority = ({ priority }: { priority?: TaskPriorityEnum }) => {
   return (
     <div
       className={cn(
-        "text-center rounded-sm whitespace-nowrap px-2 py-1",
+        "text-center rounded-sm text-white whitespace-nowrap px-2 py-1",
         TaskPriorityClassMap[priority],
       )}
     >
       <span className="text-sm font-medium">
-        {TaskPriorityTranslation[priority]}
+        {TaskPriorityLabelMap[priority]}
       </span>
     </div>
   );

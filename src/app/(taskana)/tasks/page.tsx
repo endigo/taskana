@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import TasksPage from "@/features/task-list/pages/page";
-import Loader from "@/features/task-list/components/task-table-loader";
+import TasksPage from "@/features/tasks/pages/page";
+import Loader from "@/features/tasks/components/task-table-loader";
 
 export default function Tasks() {
   return (

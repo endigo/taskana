@@ -9,6 +9,8 @@ import {
 import { Task } from "@/common/types/task";
 import { TaskPriority } from "./task-priority";
 import { TaskStatus } from "./task-status";
+import { TaskDelete } from "./task-delete";
+import { TaskEdit } from "./task-edit-modal";
 
 export default function AllTasks({ tasks = [] }: { tasks: Task[] }) {
   if (tasks.length === 0) {
@@ -22,6 +24,7 @@ export default function AllTasks({ tasks = [] }: { tasks: Task[] }) {
           <TableHead className="font-semibold">Task Name</TableHead>
           <TableHead className="font-semibold w-[80px]">Priority</TableHead>
           <TableHead className="font-semibold w-[80px]">Status</TableHead>
+          <TableHead className="font-semibold w-[150px]">Action</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -33,6 +36,10 @@ export default function AllTasks({ tasks = [] }: { tasks: Task[] }) {
             </TableCell>
             <TableCell>
               <TaskStatus status={task.status} />
+            </TableCell>
+            <TableCell>
+              <TaskEdit task={task} />
+              <TaskDelete task={task} />
             </TableCell>
           </TableRow>
         ))}

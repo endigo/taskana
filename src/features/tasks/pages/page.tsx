@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import TaskTable from "@/features/task-list/components/task-table";
-import { fetchTasks } from "@/features/task-list/services/tasks";
-import Loader from "@/features/task-list/components/task-table-loader";
+import TaskTable from "@/features/tasks/components/task-table";
+import { fetchTasks } from "@/features/tasks/services/tasks";
+import Loader from "@/features/tasks/components/task-table-loader";
+import { TaskCreateModal } from "@/features/tasks/components/task-create-modal";
 
 export default function Tasks() {
   const { data, isLoading } = useQuery({
@@ -11,7 +12,6 @@ export default function Tasks() {
     queryFn: () => fetchTasks({}),
   });
 
-  // TODO: load tasks lists
   // TODO: add Create new Task button
 
   // TODO: add filtering
@@ -26,7 +26,11 @@ export default function Tasks() {
   }
 
   return (
-    <div className="">
+    <div>
+      <div className="flex justify-between">
+        <h1 className="text-2xl font-bold mb-4">Tasks</h1>
+        <TaskCreateModal />
+      </div>
       <TaskTable tasks={data} />
     </div>
   );
