@@ -1,7 +1,5 @@
 import { useRouter, useSearchParams } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { TaskStatusEnum, TaskPriorityEnum } from "@/common/types/task";
 import {
@@ -22,51 +20,32 @@ import {
 } from "@/components/ui/select";
 import { TaskPriority } from "./task-priority";
 import { TaskStatus } from "./task-status";
-
-const FormSchema = z.object({
-  title: z.string({
-    required_error: "Please enter task title",
-  }),
-  status: z.nativeEnum(TaskStatusEnum).or(z.string().optional()),
-  priority: z.nativeEnum(TaskPriorityEnum).or(z.string().optional()),
-});
+import { useFieldConfig } from "../hooks/use-field-config";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const GlobalFilters = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const fieldConfig = useFieldConfig();
+
+  const form = useForm({
     defaultValues: {
       title: searchParams.get("title") ?? "",
       status: searchParams.get("status") ?? "na",
       priority: searchParams.get("priority") ?? "na",
-    },
-    resolver: zodResolver(FormSchema),
+    } as { [x: string]: string | number },
   });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(data: { [x: string]: string | number }) {
     const nextSearchParams = new URLSearchParams(searchParams);
 
-    if (Boolean(data.title)) {
-      nextSearchParams.set("title", data.title);
-    } else {
-      nextSearchParams.delete("title");
-    }
-
-    if (data.status) {
-      if (data.status !== "na") {
-        nextSearchParams.set("status", data.status);
+    Object.entries(data).forEach(([key, value]) => {
+      if (Boolean(value) && value !== "na") {
+        nextSearchParams.set(key, value.toString());
       } else {
-        nextSearchParams.delete("status");
+        nextSearchParams.delete(key);
       }
-    }
-
-    if (data.priority) {
-      if (data.priority !== "na") {
-        nextSearchParams.set("priority", data.priority);
-      } else {
-        nextSearchParams.delete("priority");
-      }
-    }
+    });
 
     router.push(`?${nextSearchParams.toString()}`);
   }
@@ -106,7 +85,7 @@ export const GlobalFilters = () => {
               <FormItem className="flex flex-row items-center mr-2">
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  defaultValue={field.value.toString()}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -137,7 +116,7 @@ export const GlobalFilters = () => {
               <FormItem className="flex flex-row items-center mr-2">
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  defaultValue={field.value.toString()}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -157,6 +136,60 @@ export const GlobalFilters = () => {
               </FormItem>
             )}
           />
+
+          {...Object.entries(fieldConfig).map(([key, config]) => (
+            <FormField
+              control={form.control}
+              key={key}
+              name={key}
+              render={({ field }) => (
+                <FormItem>
+                  {config.type === "text" ? (
+                    <Input
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      placeholder={config.label}
+                    />
+                  ) : config.type === "select" ? (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={config.label} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="na">{config.label}</SelectItem>
+                        {(Array.isArray(config.options)
+                          ? config.options
+                          : (config.options || "").split(", ")
+                        ).map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : config.type === "checkbox" ? (
+                    <Checkbox
+                      checked={Boolean(field.value)}
+                      onCheckedChange={field.onChange}
+                    />
+                  ) : (
+                    <Input
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      placeholder={config.label}
+                    />
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ))}
+
           <Button type="submit">Submit</Button>
           <Button variant="secondary" onClick={handleClear}>
             Clear

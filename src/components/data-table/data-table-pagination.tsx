@@ -40,6 +40,8 @@ export function DataTablePagination({
   const handleLimitChange = (newLimit: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set("limit", newLimit.toString());
+    // Reset page to 1 when changing limit
+    newSearchParams.set("page", "1");
     router.push(`?${newSearchParams.toString()}`);
   };
 

@@ -212,7 +212,6 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
         ))}
         <Button type="submit">Submit</Button>
       </form>
-      <code>{JSON.stringify(form.getValues(), null, 2)}</code>
     </Form>
   );
 };

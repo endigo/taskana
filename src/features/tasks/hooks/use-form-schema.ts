@@ -2,12 +2,12 @@ import { z } from "zod";
 import { TaskStatusEnum, TaskPriorityEnum } from "@/common/types/task";
 import { useFieldConfig } from "./use-field-config";
 
-const baseSchema = z.object({
+const BaseSchema = z.object({
   title: z.string({
     required_error: "Please enter task title",
   }),
-  status: z.nativeEnum(TaskStatusEnum),
-  priority: z.nativeEnum(TaskPriorityEnum),
+  status: z.nativeEnum(TaskStatusEnum).or(z.string().optional()),
+  priority: z.nativeEnum(TaskPriorityEnum).or(z.string().optional()),
 });
 
 export const useFormSchema = () => {
@@ -40,5 +40,5 @@ export const useFormSchema = () => {
     {} as Record<string, z.ZodType<string | number>>,
   );
 
-  return baseSchema.extend(dynamicSchema);
+  return BaseSchema.extend(dynamicSchema);
 };
