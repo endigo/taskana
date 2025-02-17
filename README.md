@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Taskana
+Another Task Management System
 
-## Getting Started
+## Overview
+Simple application for managing tasks.
 
+### Features
+- See your tasks in a table
+- Create, Update, Delete your tasks with (title, status, priority)
+- Ability to create custom fields
+- Filter by any fields including custom fields
+- Sort by any fields including custom fields
+- Supports Pagination for big list of tasks
+- All in your browser tab, no data went outside of your browser
+
+## Notes
+- This project uses Next.js (v15) and TypeScript.
+- Seed tasks by default
+- Track next ID for new tasks
+- Dynamic Form validation with Zod and custom fields `src/features/tasks/hooks/use-form-schema.ts`
+- Consistent filter and sorting, stored in URL
+
+## Milestones
+- [x] Task Management (CRUD)
+- [x] Managing tasks
+- [x] Filtering and Sorting
+- [x] Pagination
+- [x] Local Persistence
+- [x] Custom Fields
+- [x] Animations and Transitions
+- [ ] Undo/Redo
+- [ ] Bulk Actions
+- [ ] Kanban Board
+
+
+## Development
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Futures Development
+- Add support Authentication
+- Add support Postgres and APIs
+- Add Kanban View
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Credits
+- https://github.com/phantomstudios/use-local-state
