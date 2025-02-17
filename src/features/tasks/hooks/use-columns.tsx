@@ -1,11 +1,14 @@
-import { Task } from "@/common/types/task";
+import { FieldConfig, Task } from "@/common/types/task";
 import { DataTableColumn } from "@/components/data-table/types";
-import { TaskPriority } from "../components/task-priority";
-import { TaskStatus } from "../components/task-status";
-import { TaskEdit } from "../components/task-edit-modal";
-import { TaskDelete } from "../components/task-delete";
+import { TaskPriority } from "@/features/tasks/components/task-priority";
+import { TaskStatus } from "@/features/tasks/components/task-status";
+import { TaskEdit } from "@/features/tasks/components/task-edit-modal";
+import { TaskDelete } from "@/features/tasks/components/task-delete";
+import { useFieldConfig } from "@/features/tasks/hooks/use-field-config";
 
 export const useColumns = () => {
+  const fieldConfig = useFieldConfig();
+
   const columns: DataTableColumn<Task>[] = [
     {
       colId: "title",
@@ -27,6 +30,15 @@ export const useColumns = () => {
       headerClassName: "font-semibold w-[80px]",
       cell: (row) => <TaskStatus status={row.status} />,
     },
+    ...Object.entries(fieldConfig as Record<string, FieldConfig>).map(
+      ([key, config]) => ({
+        colId: key,
+        header: config.label,
+        headerClassName: "font-semibold w-[150px]",
+        cell: (row: Task) => row[key]?.toString() || "-",
+      }),
+    ),
+
     {
       colId: "id",
       header: "Action",

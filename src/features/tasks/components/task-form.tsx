@@ -1,6 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { TaskStatusEnum, TaskPriorityEnum, Task } from "@/common/types/task";
 import {
@@ -20,19 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import toast from "react-hot-toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { TaskPriority } from "./task-priority";
 import { TaskStatus } from "./task-status";
 import { createTask, updateTask } from "@/features/tasks/services/tasks";
-
-const FormSchema = z.object({
-  title: z.string({
-    required_error: "Please enter task title",
-  }),
-  status: z.nativeEnum(TaskStatusEnum),
-  priority: z.nativeEnum(TaskPriorityEnum),
-});
+import { useFieldConfig } from "@/features/tasks/hooks/use-field-config";
+import { useFormSchema } from "@/features/tasks/hooks/use-form-schema";
+import { useFilter } from "@/features/tasks/hooks/use-filter";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface IProps {
   task?: Task;
@@ -41,16 +38,23 @@ interface IProps {
 
 export const TaskForm = ({ task, closeDialog }: IProps) => {
   const queryClient = useQueryClient();
-  const form = useForm<z.infer<typeof FormSchema>>({
+
+  const fieldConfig = useFieldConfig();
+  const taskFormSchema = useFormSchema();
+  const searchParams = useSearchParams();
+  const sort = searchParams.get("sort") || undefined;
+  const filter = useFilter();
+
+  const form = useForm<z.infer<typeof taskFormSchema>>({
     defaultValues: task ?? {
       title: "",
       status: TaskStatusEnum.NOT_STARTED,
       priority: TaskPriorityEnum.NONE,
     },
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(taskFormSchema),
   });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(data: z.infer<typeof taskFormSchema>) {
     if (task && task.id) {
       await toast.promise(updateTask(task.id, data), {
         loading: "Updating...",
@@ -59,7 +63,7 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["tasks"],
+        queryKey: ["tasks", sort, filter],
       });
       closeDialog?.();
     } else {
@@ -69,7 +73,10 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
         error: <b>Something went wrong!.</b>,
       });
 
-      queryClient.setQueryData(["tasks"], (prev: Task[]) => [...prev, newTask]);
+      queryClient.setQueryData(["tasks", sort, filter], (prev: Task[]) => [
+        ...prev,
+        newTask,
+      ]);
     }
   }
 
@@ -100,7 +107,7 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
                 <FormLabel>Priority</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  defaultValue={field.value.toString()}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -131,7 +138,7 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
                 <FormLabel>Status</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  defaultValue={field.value.toString()}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -151,8 +158,61 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
             )}
           />
         </div>
+        {...Object.entries(fieldConfig).map(([key, config]) => (
+          <FormField
+            control={form.control}
+            key={key}
+            name={key}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{config.label}</FormLabel>
+                {config.type === "text" ? (
+                  <Input
+                    defaultValue={field.value}
+                    onChange={field.onChange}
+                    placeholder={config.label}
+                  />
+                ) : config.type === "select" ? (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value?.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={config.label} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(Array.isArray(config.options)
+                        ? config.options
+                        : (config.options || "").split(", ")
+                      ).map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : config.type === "checkbox" ? (
+                  <Checkbox
+                    checked={Boolean(field.value)}
+                    onCheckedChange={field.onChange}
+                  />
+                ) : (
+                  <Input
+                    defaultValue={field.value}
+                    onChange={field.onChange}
+                    placeholder={config.label}
+                  />
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ))}
         <Button type="submit">Submit</Button>
       </form>
+      <code>{JSON.stringify(form.getValues(), null, 2)}</code>
     </Form>
   );
 };

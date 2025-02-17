@@ -20,6 +20,39 @@ export const TaskPriorityOrder = [
   TaskPriorityEnum.NONE,
 ];
 
+export type FieldConfig = {
+  label: string;
+  type: string;
+  options?: string[] | string;
+  required?: boolean;
+  hidden?: boolean;
+};
+
+export const DEFAULT_TASK_FIELD_CONFIG: Record<string, FieldConfig> = {
+  id: {
+    label: "ID",
+    type: "number",
+    hidden: true,
+    required: true,
+  },
+  title: {
+    label: "Title",
+    type: "string",
+    required: true,
+  },
+  status: {
+    label: "Status",
+    type: "string",
+    options: Object.values(TaskStatusEnum),
+  },
+  priority: {
+    label: "Priority",
+    type: "string",
+    options: Object.values(TaskPriorityEnum),
+  },
+};
+export const DEFAULT_TASK_FIELDS = Object.keys(DEFAULT_TASK_FIELD_CONFIG);
+
 export type BaseTask = {
   id: number;
   title: string;
@@ -27,4 +60,6 @@ export type BaseTask = {
   priority: TaskPriorityEnum;
 };
 
-export type Task = BaseTask & Record<string, string | number>;
+export type Task = BaseTask & {
+  [x: string]: string | number;
+};

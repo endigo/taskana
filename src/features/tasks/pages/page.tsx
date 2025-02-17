@@ -9,31 +9,20 @@ import DataTable from "@/components/data-table/data-table";
 import { useColumns } from "@/features/tasks/hooks/use-columns";
 import { useSearchParams } from "next/navigation";
 import { GlobalFilters } from "../components/task-global-filters";
-import { TaskPriorityEnum, TaskStatusEnum } from "@/common/types/task";
+import { TaskCustomFieldModal } from "../components/task-custom-field";
+import { useFilter } from "../hooks/use-filter";
 
 export default function Tasks() {
   const searchParams = useSearchParams();
-
   const sort = searchParams.get("sort") || undefined;
-
-  // const filterCond = [];
-
-  const titleQuery = searchParams.get("title") || undefined;
-  const statusQuery = (searchParams.get("status") || undefined) as
-    | TaskStatusEnum
-    | undefined;
-  const priorityQuery = (searchParams.get("priority") || undefined) as
-    | TaskPriorityEnum
-    | undefined;
+  const filter = useFilter();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["tasks", sort, titleQuery, statusQuery, priorityQuery],
+    queryKey: ["tasks", sort, filter],
     queryFn: () =>
       fetchTasks({
         sort,
-        query: titleQuery,
-        status: statusQuery,
-        priority: priorityQuery,
+        filter,
       }),
   });
 
@@ -51,7 +40,10 @@ export default function Tasks() {
     <div>
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold mb-4">Tasks</h1>
-        <TaskCreateModal />
+        <div className="flex space-x-2">
+          <TaskCreateModal />
+          <TaskCustomFieldModal />
+        </div>
       </div>
 
       <GlobalFilters />

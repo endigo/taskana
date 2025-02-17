@@ -30,7 +30,6 @@ export function DataTablePagination({
   const page = parseInt(searchParams.get("page") ?? "1");
 
   const totalPages = Math.ceil(total / parseInt(limit));
-  console.log("total", total, "pages", totalPages, limit);
 
   const handlePageChange = (newPage: number) => {
     const newSearchParams = new URLSearchParams(searchParams);

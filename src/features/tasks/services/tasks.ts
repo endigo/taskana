@@ -1,4 +1,4 @@
-import { SK_DATA, SK_TASK_CONFIG } from "@/common/constants";
+import { SK_DATA, SK_TASK_ID } from "@/common/constants";
 import {
   Task,
   TaskPriorityEnum,
@@ -6,22 +6,15 @@ import {
   TaskStatusEnum,
 } from "@/common/types/task";
 import { SortDirection } from "@/components/data-table/types";
-import { Pi } from "lucide-react";
 
 export type TaskParams = {
   limit?: string | number;
   page?: string | number;
-  status?: TaskStatusEnum;
-  priority?: TaskPriorityEnum;
-  query?: string;
   sort?: string;
+  filter?: Record<string, string>;
 };
 
-export type TaskInput = {
-  title: string;
-  status: TaskStatusEnum;
-  priority: TaskPriorityEnum;
-};
+export type TaskInput = Record<string, string | number>;
 
 export const syncTasksFromGist = async () => {
   if (typeof window === "undefined" || typeof localStorage === "undefined") {
@@ -40,31 +33,21 @@ export const syncTasksFromGist = async () => {
   localStorage.setItem(SK_DATA, JSON.stringify(data));
 
   const nextId = Math.max(...data.map((task: Task) => task.id)) + 1;
-  const taskFields = Object.keys(data[0]);
-  const taskFieldConfig: Record<string, string> = {};
-  const firstRow = data[0];
-  for (const field of taskFields) {
-    taskFieldConfig[field] = typeof firstRow[field];
-  }
 
-  localStorage.setItem(
-    SK_TASK_CONFIG,
-    JSON.stringify({ nextId, taskFieldConfig }),
-  );
+  localStorage.setItem(SK_TASK_ID, `${nextId}`);
 
   console.info("Tasks synced successfully");
 
   return data;
 };
 
-// TODO: Implement pagination, filter, and sorting
 export const fetchTasks = async (params: TaskParams): Promise<Task[]> => {
   if (!localStorage[SK_DATA]) {
     console.info("No tasks found");
     syncTasksFromGist();
   }
 
-  const data = window.localStorage.getItem(SK_DATA);
+  const data = localStorage[SK_DATA];
 
   if (data) {
     const parsedData = JSON.parse(data) as Task[];
@@ -82,6 +65,8 @@ export const fetchTasks = async (params: TaskParams): Promise<Task[]> => {
           const valA = a[sortColumn];
           const valB = b[sortColumn];
 
+          if (!valA || !valB) return 0;
+
           if (typeof valA === "string" && typeof valB === "string") {
             if (direction === "asc") {
               return valA.toLowerCase().localeCompare(valB.toLowerCase());
@@ -91,31 +76,25 @@ export const fetchTasks = async (params: TaskParams): Promise<Task[]> => {
 
           // TODO: handle other types of fields numbers, boolean, date
           if (direction === "asc") {
-            return +a[sortColumn] - +b[sortColumn];
+            return +valA - +valB;
           }
-          return +b[sortColumn] - +a[sortColumn];
+          return +valB - +valA;
         });
       }
     }
 
     let result = parsedData;
 
-    if (params.query) {
+    if (params.filter) {
       result = result.filter((task) => {
-        const title = task.title.toLowerCase();
-        const query = (params.query ?? "").toLowerCase();
-        return title.includes(query);
-      });
-    }
-    if (params.status) {
-      result = result.filter((task) => {
-        return task.status === params.status;
-      });
-    }
+        return Object.entries(params.filter ?? {}).every(([field, value]) => {
+          const fieldValue = task[field];
 
-    if (params.priority) {
-      result = result.filter((task) => {
-        return task.priority === params.priority;
+          if (typeof value === "string" && typeof fieldValue === "string") {
+            return fieldValue.toLowerCase().includes(value.toLowerCase());
+          }
+          return task[field] === value;
+        });
       });
     }
 
@@ -145,21 +124,20 @@ const sortByPriority = (direction: SortDirection) => {
 export const createTask = async (input: TaskInput) => {
   const data = await fetchTasks({});
 
-  const config = JSON.parse(localStorage.getItem(SK_TASK_CONFIG) || "{}");
+  const nextId = parseInt(localStorage[SK_TASK_ID] ?? "1");
 
-  const newId = (config.nextId ?? 1) as number;
   const newTask: Task = {
     ...input,
-    id: newId,
+    id: nextId,
+    title: input.title as string,
+    status: input.status as TaskStatusEnum,
+    priority: input.priority as TaskPriorityEnum,
   };
 
   data.push(newTask);
 
   localStorage.setItem(SK_DATA, JSON.stringify(data));
-  localStorage.setItem(
-    SK_TASK_CONFIG,
-    JSON.stringify({ ...config, nextId: newId + 1 }),
-  );
+  localStorage.setItem(SK_TASK_ID, `${nextId + 1}`);
 
   return newTask;
 };
