@@ -39,7 +39,7 @@ export default function Tasks() {
   return (
     <div>
       <div className="flex justify-between">
-        <h1 className="text-2xl font-bold mb-4">Tasks</h1>
+        <h1 className="text-2xl font-bold mb-4">Taskana</h1>
         <div className="flex space-x-2">
           <TaskCreateModal />
           <TaskCustomFieldModal />

@@ -44,7 +44,7 @@ export const syncTasksFromGist = async () => {
 export const fetchTasks = async (params: TaskParams): Promise<Task[]> => {
   if (!localStorage[SK_DATA]) {
     console.info("No tasks found");
-    syncTasksFromGist();
+    await syncTasksFromGist();
   }
 
   const data = localStorage[SK_DATA];
