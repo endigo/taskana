@@ -26,8 +26,11 @@ export default function DataTable<T>({
   const limit = parseInt(searchParams.get("limit") ?? "10");
   const page = parseInt(searchParams.get("page") ?? "1");
 
+  const start = (page - 1) * limit;
+  const end = start + limit;
+
   return (
-    <div>
+    <>
       {/* TODO: Global filters (search etc) */}
       {/* TODO: Bulk actions */}
       <Table className={className}>
@@ -43,20 +46,18 @@ export default function DataTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data
-            .slice((page - 1) * limit, (page - 1) * limit + limit)
-            .map((row, idx) => (
-              <TableRow key={idx}>
-                {columns.map((column, idx) => (
-                  <TableCell key={idx} className={column.className}>
-                    {column.cell(row)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+          {data.slice(start, end).map((row, idx) => (
+            <TableRow key={idx}>
+              {columns.map((column, idx) => (
+                <TableCell key={idx} className={column.className}>
+                  {column.cell(row)}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
       <DataTablePagination total={data.length} />
-    </div>
+    </>
   );
 }

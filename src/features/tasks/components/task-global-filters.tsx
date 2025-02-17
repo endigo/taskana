@@ -1,14 +1,14 @@
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { TaskStatusEnum, TaskPriorityEnum, Task } from "@/common/types/task";
+import { TaskStatusEnum, TaskPriorityEnum } from "@/common/types/task";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -20,84 +20,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import toast from "react-hot-toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { TaskPriority } from "./task-priority";
 import { TaskStatus } from "./task-status";
-import { createTask, updateTask } from "@/features/tasks/services/tasks";
 
 const FormSchema = z.object({
   title: z.string({
     required_error: "Please enter task title",
   }),
-  status: z.nativeEnum(TaskStatusEnum),
-  priority: z.nativeEnum(TaskPriorityEnum),
+  status: z.nativeEnum(TaskStatusEnum).or(z.string().optional()),
+  priority: z.nativeEnum(TaskPriorityEnum).or(z.string().optional()),
 });
 
-interface IProps {
-  task?: Task;
-  closeDialog?: () => void;
-}
-
-export const TaskForm = ({ task, closeDialog }: IProps) => {
-  const queryClient = useQueryClient();
+export const GlobalFilters = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const form = useForm<z.infer<typeof FormSchema>>({
-    defaultValues: task ?? {
-      title: "",
-      status: TaskStatusEnum.NOT_STARTED,
-      priority: TaskPriorityEnum.NONE,
+    defaultValues: {
+      title: searchParams.get("title") ?? "",
+      status: searchParams.get("status") ?? "na",
+      priority: searchParams.get("priority") ?? "na",
     },
     resolver: zodResolver(FormSchema),
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (task && task.id) {
-      await toast.promise(updateTask(task.id, data), {
-        loading: "Updating...",
-        success: <b>Task updated!</b>,
-        error: <b>Something went wrong!.</b>,
-      });
+    const nextSearchParams = new URLSearchParams(searchParams);
 
-      queryClient.invalidateQueries({
-        queryKey: ["tasks"],
-      });
-      closeDialog?.();
+    if (Boolean(data.title)) {
+      nextSearchParams.set("title", data.title);
     } else {
-      const newTask = await toast.promise(createTask(data), {
-        loading: "Saving...",
-        success: <b>Task created!</b>,
-        error: <b>Something went wrong!.</b>,
-      });
-
-      queryClient.setQueryData(["tasks"], (prev: Task[]) => [...prev, newTask]);
+      nextSearchParams.delete("title");
     }
+
+    if (data.status) {
+      if (data.status !== "na") {
+        nextSearchParams.set("status", data.status);
+      } else {
+        nextSearchParams.delete("status");
+      }
+    }
+
+    if (data.priority) {
+      if (data.priority !== "na") {
+        nextSearchParams.set("priority", data.priority);
+      } else {
+        nextSearchParams.delete("priority");
+      }
+    }
+
+    router.push(`?${nextSearchParams.toString()}`);
   }
+
+  const handleClear = () => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("title");
+    nextSearchParams.delete("status");
+    nextSearchParams.delete("priority");
+
+    window.location.href = `?${nextSearchParams.toString()}`;
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Task Title</FormLabel>
-              <Input
-                defaultValue={field.value}
-                onChange={field.onChange}
-                placeholder="New Task"
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex flex-row gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="my-4">
+        <div className="flex flex-row gap-4 items-center ">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center mr-2">
+                <Input
+                  defaultValue={field.value}
+                  onChange={field.onChange}
+                  placeholder="Search by title"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="priority"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
+              <FormItem className="flex flex-row items-center mr-2">
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -108,6 +114,7 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="na">Priority</SelectItem>
                     {Object.values(TaskPriorityEnum).map((value) => (
                       <SelectItem key={value} value={value}>
                         {value === TaskPriorityEnum.NONE ? (
@@ -127,8 +134,7 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
             control={form.control}
             name="status"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
+              <FormItem className="flex flex-row items-center mr-2">
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -139,6 +145,7 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="na">Status</SelectItem>
                     {Object.values(TaskStatusEnum).map((value) => (
                       <SelectItem key={value} value={value}>
                         <TaskStatus status={value} />
@@ -150,8 +157,11 @@ export const TaskForm = ({ task, closeDialog }: IProps) => {
               </FormItem>
             )}
           />
+          <Button type="submit">Submit</Button>
+          <Button variant="secondary" onClick={handleClear}>
+            Clear
+          </Button>
         </div>
-        <Button type="submit">Submit</Button>
       </form>
     </Form>
   );

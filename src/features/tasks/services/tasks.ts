@@ -6,6 +6,7 @@ import {
   TaskStatusEnum,
 } from "@/common/types/task";
 import { SortDirection } from "@/components/data-table/types";
+import { Pi } from "lucide-react";
 
 export type TaskParams = {
   limit?: string | number;
@@ -97,7 +98,28 @@ export const fetchTasks = async (params: TaskParams): Promise<Task[]> => {
       }
     }
 
-    return parsedData;
+    let result = parsedData;
+
+    if (params.query) {
+      result = result.filter((task) => {
+        const title = task.title.toLowerCase();
+        const query = (params.query ?? "").toLowerCase();
+        return title.includes(query);
+      });
+    }
+    if (params.status) {
+      result = result.filter((task) => {
+        return task.status === params.status;
+      });
+    }
+
+    if (params.priority) {
+      result = result.filter((task) => {
+        return task.priority === params.priority;
+      });
+    }
+
+    return result;
   }
   return [];
 };

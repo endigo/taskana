@@ -8,25 +8,37 @@ import { TaskCreateModal } from "@/features/tasks/components/task-create-modal";
 import DataTable from "@/components/data-table/data-table";
 import { useColumns } from "@/features/tasks/hooks/use-columns";
 import { useSearchParams } from "next/navigation";
+import { GlobalFilters } from "../components/task-global-filters";
+import { TaskPriorityEnum, TaskStatusEnum } from "@/common/types/task";
 
 export default function Tasks() {
   const searchParams = useSearchParams();
 
   const sort = searchParams.get("sort") || undefined;
 
+  // const filterCond = [];
+
+  const titleQuery = searchParams.get("title") || undefined;
+  const statusQuery = (searchParams.get("status") || undefined) as
+    | TaskStatusEnum
+    | undefined;
+  const priorityQuery = (searchParams.get("priority") || undefined) as
+    | TaskPriorityEnum
+    | undefined;
+
   const { data, isLoading } = useQuery({
-    queryKey: ["tasks", sort],
+    queryKey: ["tasks", sort, titleQuery, statusQuery, priorityQuery],
     queryFn: () =>
       fetchTasks({
         sort,
+        query: titleQuery,
+        status: statusQuery,
+        priority: priorityQuery,
       }),
   });
 
   const columns = useColumns();
 
-  // TODO: add sorting
-  // TODO: add filtering
-  // TODO: add pagination
   if (isLoading) {
     return <Loader />;
   }
@@ -41,6 +53,8 @@ export default function Tasks() {
         <h1 className="text-2xl font-bold mb-4">Tasks</h1>
         <TaskCreateModal />
       </div>
+
+      <GlobalFilters />
 
       <DataTable
         columns={columns}
