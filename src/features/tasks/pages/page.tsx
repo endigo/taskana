@@ -2,15 +2,17 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTasks } from "@/features/tasks/services/tasks";
-import Loader from "@/features/tasks/components/task-table-loader";
-import { TaskCreateModal } from "@/features/tasks/components/task-create-modal";
-import DataTable from "@/components/data-table/data-table";
-import { useColumns } from "@/features/tasks/hooks/use-columns";
 import { useSearchParams } from "next/navigation";
-import { GlobalFilters } from "../components/task-global-filters";
-import { TaskCustomFieldModal } from "../components/task-custom-field";
-import { useFilter } from "../hooks/use-filter";
+
+import DataTable from "@/components/data-table/data-table";
+import { TaskCreateModal } from "@/features/tasks/components/task-create-modal";
+import { TaskCustomFieldModal } from "@/features/tasks/components/task-custom-field";
+import { GlobalFilters } from "@/features/tasks/components/task-global-filters";
+import Loader from "@/features/tasks/components/task-table-loader";
+import { useColumns } from "@/features/tasks/hooks/use-columns";
+import { useFilter } from "@/features/tasks/hooks/use-filter";
+import { fetchTasks } from "@/features/tasks/services/tasks";
+import KanbanBoard from "@/features/kanban/components/board";
 
 export default function Tasks() {
   const searchParams = useSearchParams();
@@ -45,6 +47,8 @@ export default function Tasks() {
           <TaskCustomFieldModal />
         </div>
       </div>
+
+      <KanbanBoard tasks={data} />
 
       <GlobalFilters />
 
