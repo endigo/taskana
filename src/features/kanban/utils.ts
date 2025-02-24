@@ -15,7 +15,7 @@ export function hasDraggableData<T extends Active | Over>(
 
   const data = entry.data.current;
 
-  if (data?.type === "Task") {
+  if (data?.type === "Task" || data?.type === "Column") {
     return true;
   }
 
